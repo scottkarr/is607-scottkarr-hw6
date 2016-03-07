@@ -1,0 +1,74 @@
+---
+title: 'HW #6 Untidy Data'
+output:
+  html_document:
+    css: ./lab.css
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+---
+
+```{r load-pkgs, eval=TRUE}
+library('dplyr')
+library('tidyr')
+library("stringr")
+library("knitr")
+```
+1. Load Data Frame from website
+```{r load-text-by-line, eval=TRUE}
+l <- read.csv(
+              "/Users/scottkarr/IS607Spring2016/hw6/more/untidy-data.csv",
+              sep=",",
+              na.strings = "",
+              blank.lines.skip = TRUE,
+              col.names = c("Airline", "Time",  "City1", "City2", "City3", "City4","City5"),
+              stringsAsFactors=FALSE
+    )
+df = data.frame(l)
+kable(head(df), align = 'l')
+```
+
+
+2.  Remove Null Row
+```{r remove-null-row,eval=TRUE}
+df_staging <- df[is.na(df$Airline) %in% FALSE | is.na(df$Time) %in% FALSE, ]
+kable(head(df_staging))
+```
+
+3.  Fill Missing Airline data
+```{r fill-missing-col,eval=TRUE}
+# adds an Airline lag column
+df_staging <- mutate(df_staging, lag = lag(Airline))
+# indexes Airline missing data and assigns from lag column
+df_staging$Airline[is.na(df_staging$Airline) == TRUE] <- df_staging$lag[is.na(df_staging$Airline) == TRUE]
+kable(head(df_staging), align = 'l')
+```
+
+4.  Spread and combine city data
+    *Note, gather may be more effective here but not on the first go-round
+```{r tidy,eval=TRUE}
+# Keep it simple, process 1 city at a time
+df_city1 <- df_staging[,1:3]
+df_city2 <- df_staging[,c(1:2,4)]
+df_city3 <- df_staging[,c(1:2,5)]
+df_city4 <- df_staging[,c(1:2,6)]
+df_city5 <- df_staging[,c(1:2,7)]
+
+# De-normalize the repeating groups
+df_city1 <- spread(df_city1, Time, City1)
+df_city1["City"] <- "City1"
+df_city2 <- spread(df_city2, Time, City2)
+df_city2["City"] <- "City2"
+df_city3 <- spread(df_city3, Time, City3)
+df_city3["City"] <- "City3"
+df_city4 <- spread(df_city4, Time, City4)
+df_city4["City"] <- "City4"
+df_city5 <- spread(df_city5, Time, City5)
+df_city5["City"] <- "City5"
+
+# Combine longform for output
+df_Output <- rbind(df_city1,df_city2,df_city3,df_city4,df_city5)
+df_Output <- df_Output[c(1,4,2,3)]
+kable(df_Output, align = 'l')
+kable(df_staging, align = 'l')
+```
