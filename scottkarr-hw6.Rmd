@@ -85,7 +85,7 @@ statistics for on-time arrivals to see how the cities compare . . .
  * use boxplot to show on time percentages by city comparitively
 
 ```{r compute-stats,eval=TRUE}
-df_Output <- mutate(df_Output, OnTimePct = (delayed/(delayed + OnTime)) * 100 )
+df_Output <- mutate(df_Output, OnTimePct = (OnTime/(delayed + OnTime)) * 100 )
 nums <- sapply(df_Output, is.numeric)
 df_stats <- df_Output[ , nums]
 df_summary <- describe(df_stats)
