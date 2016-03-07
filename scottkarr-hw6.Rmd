@@ -13,6 +13,7 @@ library('dplyr')
 library('tidyr')
 library("stringr")
 library("knitr")
+library("psych")
 ```
 1. Load Data Frame from website
 ```{r load-text-by-line, eval=TRUE}
@@ -68,7 +69,26 @@ df_city5["City"] <- "City5"
 
 # Combine longform for output
 df_Output <- rbind(df_city1,df_city2,df_city3,df_city4,df_city5)
+colnames(df_Output)[3] <- "OnTime"
 df_Output <- df_Output[c(1,4,2,3)]
+
+# Subset numeric columns to compute statistics
 kable(df_Output, align = 'l')
 kable(df_staging, align = 'l')
+```
+
+5. OK, so now that we have our arrival/departure data in long form, let's compute summary
+statistics for on-time arrivals to see how the cities compare . . .
+
+ * add on time percentage column so we're comparing apples with apples
+ * show summary statistics for on time percentage as well as nominal delay and on-time counts
+ * use boxplot to show on time percentages by city comparitively
+
+```{r compute-stats,eval=TRUE}
+df_Output <- mutate(df_Output, OnTimePct = (delayed/(delayed + OnTime)) * 100 )
+nums <- sapply(df_Output, is.numeric)
+df_stats <- df_Output[ , nums]
+df_summary <- describe(df_stats)
+kable(df_summary,align='l')
+boxplot(split(df_Output$OnTimePct,df_Output$City),main='On Time Arrivals By City')
 ```
